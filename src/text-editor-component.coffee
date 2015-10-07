@@ -122,6 +122,11 @@ class TextEditorComponent
     @horizontalScrollbarComponent.destroy()
     @stopListeningForDOMEvents()
 
+    @verticalScrollbarComponent = null
+    @horizontalScrollbarComponent = null
+    @onVerticalScroll = null
+    @onHorizontalScroll = null
+
   clearDomNodes: ->
     @scrollViewNode = null
     @domNodeValue = null
