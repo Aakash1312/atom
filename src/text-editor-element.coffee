@@ -18,11 +18,12 @@ class TextEditorElement extends HTMLElement
   logicalDisplayBuffer: true
 
   createdCallback: ->
+    @redispatchBlurEvent = =>
+      @dispatchEvent(new FocusEvent('blur', bubbles: false))
+
     @emitter = new Emitter
     @subscriptions = new CompositeDisposable
     @initializeContent()
-    @addEventListener 'focus', @focused.bind(this)
-    @addEventListener 'blur', @blurred.bind(this)
 
   initializeContent: (attributes) ->
     @classList.add('editor')
@@ -55,6 +56,9 @@ class TextEditorElement extends HTMLElement
       @rootElement = this
 
   attachedCallback: ->
+    @addEventListener 'focus', @focused
+    @addEventListener 'blur', @blurred
+
     @buildModel() unless @getModel()?
     atom.assert(@model.isAlive(), "Attaching a view for a destroyed editor")
     @mountComponent() unless @component?
@@ -65,6 +69,9 @@ class TextEditorElement extends HTMLElement
     @emitter.emit("did-attach")
 
   detachedCallback: ->
+    @removeEventListener 'focus', @focused
+    @removeEventListener 'blur', @blurred
+
     @unmountComponent()
     @subscriptions.dispose()
     @subscriptions = new CompositeDisposable
@@ -121,22 +128,29 @@ class TextEditorElement extends HTMLElement
     @rootElement.appendChild(@component.getDomNode())
 
     if @useShadowDOM
-      @shadowRoot.addEventListener('blur', @shadowRootBlurred.bind(this), true)
+      @shadowRoot.addEventListener('blur', @shadowRootBlurred, true)
     else
       inputNode = @component.hiddenInputComponent.getDomNode()
-      inputNode.addEventListener 'focus', @focused.bind(this)
-      inputNode.addEventListener 'blur', => @dispatchEvent(new FocusEvent('blur', bubbles: false))
+      inputNode.addEventListener 'focus', @focused
+      inputNode.addEventListener 'blur', @redispatchBlurEvent
 
   unmountComponent: ->
     if @component?
+      if @useShadowDOM
+        @shadowRoot.removeEventListener('blur', @shadowRootBlurred, true)
+      else
+        inputNode = @component.hiddenInputComponent.getDomNode()
+        inputNode.removeEventListener 'focus', @focused
+        inputNode.removeEventListener 'blur', @redispatchBlurEvent
+
       @component.destroy()
       @component.getDomNode().remove()
       @component = null
 
-  focused: ->
+  focused: =>
     @component?.focused()
 
-  blurred: (event) ->
+  blurred: (event) =>
     unless @useShadowDOM
       if event.relatedTarget is @component.hiddenInputComponent.getDomNode()
         event.stopImmediatePropagation()
@@ -151,7 +165,7 @@ class TextEditorElement extends HTMLElement
   # focused but the hidden input isn't focused. This always refocuses the hidden
   # input if a blur event occurs in the shadow DOM that is transferring focus
   # back to the host element.
-  shadowRootBlurred: (event) ->
+  shadowRootBlurred: (event) =>
     @component.focused() if event.relatedTarget is this
 
   addGrammarScopeAttribute: ->
