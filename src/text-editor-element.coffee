@@ -145,6 +145,7 @@ class TextEditorElement extends HTMLElement
 
       @component.destroy()
       @component.getDomNode().remove()
+      @component.clearDomNodes()
       @component = null
 
   focused: =>

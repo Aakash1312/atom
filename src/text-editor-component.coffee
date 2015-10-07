@@ -120,8 +120,11 @@ class TextEditorComponent
     @domElementPool.clear()
     @verticalScrollbarComponent.destroy()
     @horizontalScrollbarComponent.destroy()
-
     @stopListeningForDOMEvents()
+
+  clearDomNodes: ->
+    @scrollViewNode = null
+    @domNodeValue = null
 
   getDomNode: ->
     @domNode
