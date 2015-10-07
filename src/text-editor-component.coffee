@@ -126,6 +126,7 @@ class TextEditorComponent
     @horizontalScrollbarComponent = null
     @onVerticalScroll = null
     @onHorizontalScroll = null
+    @sampleFontStyling = null
 
   clearDomNodes: ->
     @scrollViewNode = null
