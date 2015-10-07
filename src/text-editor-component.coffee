@@ -111,8 +111,12 @@ class TextEditorComponent
     @updateSync()
     @checkForVisibilityChange()
     @initialized = true
+    @destroyed = false
 
   destroy: ->
+    return if @destroyed
+
+    @destroyed = true
     @mounted = false
     @disposables.dispose()
     @presenter.destroy()
