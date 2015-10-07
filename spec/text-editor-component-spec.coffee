@@ -1715,6 +1715,21 @@ describe "TextEditorComponent", ->
     beforeEach ->
       linesNode = componentNode.querySelector('.lines')
 
+    describe "when the component is destroyed", ->
+      it "stops listening for mouse events", ->
+        spyOn(editor, "setCursorScreenPosition")
+
+        wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
+        wrapperNode.style.width = 10 * charWidth + 'px'
+        component.measureDimensions()
+        nextAnimationFrame()
+
+        component.destroy()
+
+        coordinates = clientCoordinatesForScreenPosition([0, 2])
+        linesNode.dispatchEvent(buildMouseEvent('mousedown', coordinates))
+        expect(editor.setCursorScreenPosition).not.toHaveBeenCalled()
+
     describe "when the mouse is single-clicked above the first line", ->
       it "moves the cursor to the start of file buffer position", ->
         editor.setText('foo')
@@ -2591,6 +2606,19 @@ describe "TextEditorComponent", ->
     beforeEach ->
       atom.config.set('editor.scrollSensitivity', 100)
 
+    describe "when the component is destroyed", ->
+      it "stops listening for mousewheel events", ->
+        spyOn(component.presenter, "setScrollTop")
+
+        wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
+        component.measureDimensions()
+        nextAnimationFrame()
+
+        component.destroy()
+
+        componentNode.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaY: -10))
+        expect(component.presenter.setScrollTop).not.toHaveBeenCalled()
+
     describe "updating scrollTop and scrollLeft", ->
       beforeEach ->
         wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
@@ -2759,6 +2787,17 @@ describe "TextEditorComponent", ->
       Object.defineProperty(event, 'target', get: -> target)
       event
 
+    describe "when the component is destroyed", ->
+      it "stops listening for input events", ->
+        spyOn(editor, "insertText")
+
+        nextAnimationFrame() if nextAnimationFrame isnt noAnimationFrame
+
+        component.destroy()
+        componentNode.dispatchEvent(buildTextInputEvent(data: 'x', target: inputNode))
+
+        expect(editor.insertText).not.toHaveBeenCalled()
+
     it "inserts the newest character in the input's value into the buffer", ->
       componentNode.dispatchEvent(buildTextInputEvent(data: 'x', target: inputNode))
       nextAnimationFrame()
@@ -2822,6 +2861,22 @@ describe "TextEditorComponent", ->
 
       beforeEach ->
         inputNode = inputNode = componentNode.querySelector('.hidden-input')
+
+      describe "when the component is destroyed", ->
+        it "stops listening for IME composition events", ->
+          spyOn(editor, "createCheckpoint")
+          spyOn(editor, "revertToCheckpoint")
+          spyOn(editor, "insertText")
+
+          component.destroy()
+
+          componentNode.dispatchEvent(buildIMECompositionEvent('compositionstart', target: inputNode))
+          componentNode.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: 's', target: inputNode))
+          componentNode.dispatchEvent(buildIMECompositionEvent('compositionend', target: inputNode))
+
+          expect(editor.createCheckpoint).not.toHaveBeenCalled()
+          expect(editor.revertToCheckpoint).not.toHaveBeenCalled()
+          expect(editor.insertText).not.toHaveBeenCalled()
 
       describe "when nothing is selected", ->
         it "inserts the chosen completion", ->

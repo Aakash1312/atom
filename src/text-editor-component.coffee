@@ -121,6 +121,8 @@ class TextEditorComponent
     @verticalScrollbarComponent.destroy()
     @horizontalScrollbarComponent.destroy()
 
+    @stopListeningForDOMEvents()
+
   getDomNode: ->
     @domNode
 
@@ -247,14 +249,28 @@ class TextEditorComponent
     #   4. compositionend fired
     #   5. textInput fired; event.data == the completion string
 
-    checkpoint = null
-    @domNode.addEventListener 'compositionstart', =>
-      checkpoint = @editor.createCheckpoint()
-    @domNode.addEventListener 'compositionupdate', (event) =>
-      @editor.insertText(event.data, select: true)
-    @domNode.addEventListener 'compositionend', (event) =>
-      @editor.revertToCheckpoint(checkpoint)
-      event.target.value = ''
+    @domNode.addEventListener 'compositionstart', @onCompositionStart
+    @domNode.addEventListener 'compositionupdate', @onCompositionUpdate
+    @domNode.addEventListener 'compositionend', @onCompositionEnd
+
+  stopListeningForDOMEvents: ->
+    @domNode.removeEventListener 'mousewheel', @onMouseWheel
+    @domNode.removeEventListener 'textInput', @onTextInput
+    @scrollViewNode.removeEventListener 'mousedown', @onMouseDown
+    @scrollViewNode.removeEventListener 'scroll', @onScrollViewScroll
+    @domNode.removeEventListener 'compositionstart', @onCompositionStart
+    @domNode.removeEventListener 'compositionupdate', @onCompositionUpdate
+    @domNode.removeEventListener 'compositionend', @onCompositionEnd
+
+  onCompositionStart: =>
+    @checkpoint = @editor.createCheckpoint()
+
+  onCompositionUpdate: (event) =>
+    @editor.insertText(event.data, select: true)
+
+  onCompositionEnd: (event) =>
+    @editor.revertToCheckpoint(@checkpoint)
+    event.target.value = ''
 
   # Listen for selection changes and store the currently selected text
   # in the selection clipboard. This is only applicable on Linux.
