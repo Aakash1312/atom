@@ -2407,6 +2407,22 @@ describe "TextEditorComponent", ->
       expect(componentNode.classList.contains('has-selection')).toBe false
 
   describe "scrolling", ->
+    describe "when the component is destroyed", ->
+      it "stops listening for scroll events", ->
+        wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
+        componentNode.style.width = 10 * charWidth + 'px'
+        component.measureDimensions()
+        nextAnimationFrame()
+        component.destroy()
+
+        verticalScrollbarNode.scrollTop = 10
+        verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
+        expect(nextAnimationFrame).toBe(noAnimationFrame)
+
+        horizontalScrollbarNode.scrollLeft = 10
+        horizontalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
+        expect(nextAnimationFrame).toBe(noAnimationFrame)
+
     it "updates the vertical scrollbar when the scrollTop is changed in the model", ->
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       component.measureDimensions()

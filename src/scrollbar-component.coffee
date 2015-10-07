@@ -12,6 +12,9 @@ class ScrollbarComponent
 
     @domNode.addEventListener 'scroll', @onScrollCallback
 
+  destroy: ->
+    @domNode.removeEventListener "scroll", @onScrollCallback
+
   getDomNode: ->
     @domNode
 

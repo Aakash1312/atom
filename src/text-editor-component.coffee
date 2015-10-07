@@ -118,6 +118,8 @@ class TextEditorComponent
     @presenter.destroy()
     @gutterContainerComponent?.destroy()
     @domElementPool.clear()
+    @verticalScrollbarComponent.destroy()
+    @horizontalScrollbarComponent.destroy()
 
   getDomNode: ->
     @domNode
