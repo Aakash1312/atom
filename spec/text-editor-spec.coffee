@@ -4062,7 +4062,7 @@ describe "TextEditor", ->
             it "doesn't change indentation of remaining lines", ->
               atom.clipboard.write("\n    indentation")
               editor.setText("\n    indentation")
-              editor.setCursorBufferPosition([1, 13])
+              editor.setCursorBufferPosition([1, 15])
               # The indentation of the non-standard line is unchanged.
               editor.pasteText()
               expect(editor.lineTextForBufferRow(2)).toBe("    indentation")
