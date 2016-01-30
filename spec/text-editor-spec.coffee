@@ -4061,8 +4061,8 @@ describe "TextEditor", ->
           describe "when the first copied line is empty", ->
             it "doesn't change indentation of remaining lines", ->
               atom.clipboard.write("\n    indentation")
+              editor.setText("\n    indentation")
               editor.setCursorBufferPosition([1, 13])
-
               # The indentation of the non-standard line is unchanged.
               editor.pasteText()
               expect(editor.lineTextForBufferRow(2)).toBe("    indentation")
